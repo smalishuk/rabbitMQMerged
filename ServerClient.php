@@ -19,234 +19,151 @@ require_once('rabbitMQLib.inc');
 # var to determine where it's going, passing the whole request along to the
 # intended recipient and then passing it's response back to the sender. 
 
+$sockerr = [
+	'message' => "Could not send message to RabbitMQ Server, check the configuration.",
+	];
+
 function dologin($a, $b) {
-	
 	$client = new rabbitMQClient("rabbit.ini","testServer");
+	$req = [
+		"type" => "login",
+		"username" => $a,
+		"password" => $b,
+	];
+	return $client->send_request($req);
 
-	$request = array();
-
-	$request['type'] = "login";
-	$request['username'] = $a;
-	$request['password'] = $b;
-
-	return $client->send_request($request);
-}
+	}
 
 
 
 function getcash ($userid) {
 
 	$client = new rabbitMQClient("rabbit.ini", "testServer");
-
-	$req = array();
-	$req['type'] = "dmz";
-	$req['uid'] = $userid;
-	$req['action'] = "cash";
-
-	return $client->send_request($req);
-}
+	$req = [
+	"type" => "dmz",
+	"uid" => $userid,
+	"action" => "cash",
+	];
+	
+	$response = $client->send_request($req);
+       	
+	return isset($reponse['message']) ? $response : $sockerr;
+	}
 
 
 
 function getpos($userid) {
 
 	$client = new rabbitMQClient("rabbit.ini", "testServer");
+        $req = [
+        "type" => "dmz",
+        "uid" => $userid,
+	"action" => "pos",
+	];
 
-        $req = array();
-        $req['type'] = "dmz";
-        $req['uid'] = $userid;
-        $req['action'] = "pos";
+	$response = $client->send_request($req);
 
-        return $client->send_request($req);
-
-}
+	return isset($reponse['message']) ? $response : $sockerr;
+	}
 
 
 
 function putorder($userid, $symbol, $number) {
 
 	$client = new rabbitMQClient("rabbit.ini", "testServer");
+        $req = [
+        "type" => "dmz",
+        "uid" => $userid,
+	"sym" => $symbol,
+	"num" => $number,
+	"action" => "order",
+	];
 
-        $req = array();
-        $req['type'] = "dmz";
-        $req['uid'] = $userid;
-	$req['sym'] = $symbol;
-	$req['num'] = $number;
-        $req['action'] = "order";
+	$response =  $client->send_request($req);
 
-        return $client->send_request($req);
-}
+	return isset($reponse['message']) ? $response : $sockerr;
+	}	
 
 
 
 function callBot0($uid, $symbol) {
 
 	$client = new rabbitMQClient("rabbit.ini", "testServer");
+        $req = [
+        "type" => "dmz",
+        "uid" => $uid,
+        "action" => "bot0",
+	"botsym" => $symbol,
+		];
 
-        $req = array();
-	$req['type'] = "dmz";
-	$req['uid'] = $uid;
-	$req['action'] = "bot0";
-	$req['botsym'] = $symbol;
+	$response = $client->send_request($req);
 
-        return $client->send_request($req);
+	return isset($reponse['message']) ? $response : $sockerr;
 }
+
+
 
 function callBot1($uid, $symbol) {
 
         $client = new rabbitMQClient("rabbit.ini", "testServer");
+        $req = [
+        "type" => "dmz",
+        "uid" => $uid,
+        "action" => "bot1",
+	"botsym" => $symbol,
+		];
+	
+	$response = $client->send_request($req);
 
-        $req = array();
-        $req['type'] = "dmz";
-        $req['uid'] = $uid;
-        $req['action'] = "bot1";
-        $req['botsym'] = $symbol;
+	return isset($reponse['message']) ? $response : $sockerr;
+	}
 
-        return $client->send_request($req);
-}
 
 
 function callBot2($uid, $symbol) {
+	
+	$client = new rabbitMQClient("rabbit.ini", "testServer");
+        $req = [
+        	"type" => "dmz",
+        	"uid" => $uid,
+		"action" => "bot2",
+		"botsym" => $symbol,
+		];
+	$response = $client->send_request($req);
 
-        $client = new rabbitMQClient("rabbit.ini", "testServer");
+	return isset($reponse['message']) ? $response : $sockerr;
+	}
 
-        $req = array();
-        $req['type'] = "dmz";
-        $req['uid'] = $uid;
-        $req['action'] = "bot2";
-        $req['botsym'] = $symbol;
-
-        return $client->send_request($req);
-}
 
 
 function newWatchedStock($uid, $new_stock, $new_price) {
 	
 	$client = new rabbitMQClient("rabbit.ini", "testServer");
+	$req = [
+        	"type" => "dmz",
+		"uid"	=> $uid,
+		"action" => "add",
+		"symbol" => $new_stock,
+		"price" => $new_price,
+		];
+	$response = $client->send_request($req);
 
-        $req = array();
-        $req['type'] = "dmz";
-        $req['uid'] = $uid;
-	$req['action'] = "add";
-	$req['symbol'] = $new_stock;
-	$req['price'] = $new_price;
+	return isset($reponse['message']) ? $response : $sockerr;
+	}
 
-	return $client->send_request($req);
 
-}
 
 function checkWatchedStocks($uid) {
 
 	$client = new rabbitMQClient("rabbit.ini", "testServer");
-
-        $req = array();
-        $req['type'] = "dmz";
-        $req['uid'] = $uid;
-	$req['action'] = "watch";
-
-	return $client->send_request($req);
-
-
-}
-
-
-function pingbackupdb() {
-	
-	$clientB = new rabbitMQClient("rabbit.ini", "failServer");
-
-        $reqB = [
-        	"type" => "ref",
-        	"refid" => "QA",
+        $req = [
+        "type" => "dmz",
+        "uid" => $uid,
+	"action" => "watch",
 		];
 
-	try {
-		$clientB->send_request($reqB);
-		return true;
+	$response = $client->send_request($req);
+	return isset($reponse['message']) ? $response : $sockerr;
 	}
-	catch (Exception $e) {
-		return false;
-	}
-}
-
-
-
-
-function pingrabbitdb() {
-	# main rabbitDB Server request array
-	$clientA = new rabbitMQClient("rabbit.ini", "testServer");
-        $reqA = [
-        "type" => "ref",
-	"refid" => "QA",];	
-	try {
-		# try and ping the main server
-		$clientA->send_request($reqA);
-		return true;
-		
-	}
-	catch(Exception $e) { # if the main server ping failed
-		
-		# get the failover flag status from the ini file FLAG
-		# var.
-		$ini = parse_ini_file('rabbit.ini', true);
-		$backupflag =  $ini["failServer"]["FLAG"];
-		
-		# if the failover is up and not already set to alive
-		if (pingbackupdb() &&  $backupflag != 1) {  
-		
-			# run the script to point the web php pages
-			# at the failOver RabbitDB for auth/DMZ
-			# access. 
-			
-			$cmd = '/home/matt00/git/WebFrontEnd/replaceINI.sh';
-			shell_exec($cmd);
-			return 9;
-		
-		} 
-
-		# if the backup is turned on and still alive, we good
-		elseif (pingbackupdb()) {
-
-			return 0;
-		
-		} 
-
-		else {  # otherwise, nothing is up and we have a problem. 
-			return 1;
-		
-		
-		}
-
-	} 	
-} # end pingrabbitdb
-
-function pingwatch() {
-	# while we have an active internet connection
-	while (connection_status() == 0) {
-		# see who is up or down
-		$monitor_code = pingrabbitdb();
-		
-		switch ($monitor_code) {
-		
-		case 0:
-			# one or the other is up, no worries
-                        return 0;
-                        break;
-		case 9:
-			#  backup just kicked in, refresh the page
-			header("Refresh:0");
-			return 0;
-                        break;
-		case 1:
-			# nothing is up, move to error page
-                        header('Location: https://www.stocktracker.com/errpage.php');
-                        break;
-                }
-
-		# wait 5 seconds
-                sleep(10);
-     
-	}
-
-}
 
 
